@@ -36,6 +36,7 @@
     }
 </style>
 <script>
+
     function openPersons(evt, Status, id = null) {
         // Declare all variables
 
@@ -86,6 +87,17 @@
             });
         });
     });
+
+    jQuery(function() {
+    jQuery('input[type="submit"]').prop('disabled', true);
+    jQuery('#number').on('input', function(e) {
+        if(this.value.length === 9) {
+            jQuery('input[type="submit"]').prop('disabled', false);
+        } else {
+            jQuery('input[type="submit"]').prop('disabled', true);
+        }
+    });
+});
 </script>
 
 <?php
@@ -237,7 +249,7 @@ if (isset($_POST['id_contact_update'])) {
                 <tr>
                     <th><label for="name">Number: </label></th>
                     <td>
-                        <input type="number" name="number" id="number" min="9" max="9" required>
+                        <input type="number" name="number" id="number" min="9" required>
                     </td>
                 </tr>
                 <input hidden type="number" name="id_contact_update" id="id_contact_update">
