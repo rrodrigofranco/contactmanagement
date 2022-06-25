@@ -81,7 +81,7 @@ function at_rest_init_edit_person()
 {
     // route url: domain.com/wp-json/$namespace/$route
     $namespace = 'api/v2';
-    $route     = 'editperson/(?P<id_person>.*?/(?P<name>.*?/(?P<email>.*?)';
+    $route     = 'updateperson/(?P<id_person>.*?)'.'/(?P<name>.*?)'.'/(?P<email>.*?)';
 
     register_rest_route($namespace, $route, array(
         'methods'   => WP_REST_Server::READABLE,

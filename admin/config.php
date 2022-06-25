@@ -62,6 +62,15 @@
         }
         document.getElementById(Status).style.display = "block";
         evt.currentTarget.className += " active";
+    }
+
+    function editPerson(id, name, email) {
+        // Declare all variables
+        document.querySelector('#adicionar').textContent = 'Editar'
+        document.querySelector('#voltar').style.display = 'block'
+        document.querySelector("#id_person_update").value = id
+        document.querySelector("#name").value = name;
+        document.querySelector("#email").value = email;
 
     }
 </script>
@@ -71,18 +80,7 @@ global $wpdb;
 $table_persons = $wpdb->prefix . 'persons';
 $table_contacts = $wpdb->prefix . 'contacts';
 
-if (isset($_POST['name'])) {
-    $nome = $_POST['name'];
-    $email = $_POST['email'];
 
-    $wpdb->insert(
-        $table_persons,
-        array(
-            'name' => $nome,
-            'email' => $email,
-        )
-    );
-}
 
 if (isset($_POST['number'])) {
     $number = intval($_POST['number']);
@@ -97,6 +95,28 @@ if (isset($_POST['number'])) {
             'number' => $number
         )
     );
+}
+
+
+if (isset($_POST['id_person_update'])) {
+    $id_person = $_POST['id_person_update'];
+    if (!empty($id_person)) {
+        $name = $_POST['name'];
+        $email = $_POST['email'];
+
+        $wpdb->update( $table_persons, array( 'name' => $name, 'email' =>  $email), array('id' => intval($id_person)) );
+    } else if (isset($_POST['name'])) {
+        $nome = $_POST['name'];
+        $email = $_POST['email'];
+    
+        $wpdb->insert(
+            $table_persons,
+            array(
+                'name' => $nome,
+                'email' => $email,
+            )
+        );
+    }
 }
 
 if (isset($_POST['id_person'])) {
@@ -142,10 +162,10 @@ dbDelta($sql);
 </div>
 
 
-
-
 <!-- Tab content -->
 <div id="Persons" class="tabcontent" style="display: block;">
+    <h2 id="adicionar">Adicionar</h2>
+    <a id="voltar" href="" style="display: none">Voltar</a>
     <form method="POST">
         <table class="form-table">
             <tbody>
@@ -159,9 +179,9 @@ dbDelta($sql);
                     <th><label for="email">E-mail: </label></th>
                     <td><input type="text" name="email" id="email"></td>
                 </tr>
+                <input hidden type="number" name="id_person_update" id="id_person_update">
             </tbody>
         </table>
-
         <?php submit_button(); ?>
     </form>
     <h3>Pessoas</h3>
@@ -170,7 +190,7 @@ dbDelta($sql);
 
     foreach ($all_persons as $person) {
     ?>
-        <?php echo $person->name ?><a href="" onclick="deletarPerson(<?php echo $person->id ?>)"> remover</a><br>
+        <?php echo $person->name ?><a href="" onclick="deletarPerson(<?php echo $person->id ?>)"> remover</a> <a href="#" onclick="editPerson(<?php echo $person->id ?>, '<?php echo $person->name ?>', '<?php echo $person->email ?>'); event.preventDefault();"> Editar</a> <br>
     <?php
 
     }
@@ -198,15 +218,15 @@ dbDelta($sql);
                     </td>
 
                 </tr>
-                
+
                 <tr>
                     <th><label for="code">Code:</label></th>
                     <td>
                         <select name="code" id="code">
+                            <option value="+351">Portugal (+351)</option>
                             <option value="+55">Brasil (+55)</option>
                             <option value="+54">+54</option>
                             <option value="+56">+56</option>
-                            <option value="+351">Portugal (+351)</option>
                     </td>
                     </select>
                 </tr>
@@ -255,7 +275,6 @@ curl_close($curl);
 print($avatar);
 */
 ?>
-
 <!--AJAX PARA LISTAR OS DADOS -->
 <script type="text/javascript">
     jQuery(document).ready(function() {
@@ -327,6 +346,27 @@ print($avatar);
                     resolve(response['remove']);
                     id = '#' + id_contact
                     jQuery(id).remove();
+                },
+                error: function(jqXHR) {
+                    reject(new Error(`Could not check whether nickname exists or not.\nReason: ${ jqXHR.responseText }`));
+                }
+            });
+        })
+    }
+</script>
+
+<script type="text/javascript">
+    async function updatePerson(id_person, name, email) {
+        alert('oi');
+        return new Promise((resolve, reject) => {
+            jQuery.ajax({
+                url: window.location.origin + "/wp-json/api/v2/updateperson/" + id_person + "/" + name + "/" + email,
+                type: "GET",
+                data: id_person,
+                success: function(response) {
+                    resolve(response['remove']);
+                    // id = '#' + id_contact
+                    //  jQuery(id).remove();
                 },
                 error: function(jqXHR) {
                     reject(new Error(`Could not check whether nickname exists or not.\nReason: ${ jqXHR.responseText }`));

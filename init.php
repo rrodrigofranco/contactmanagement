@@ -16,7 +16,5 @@ define('CM_ROUTE', plugin_dir_path(__FILE__));
 
 include(CM_ROUTE . '/includes/options.php');
 
-// Route to remove Person
-
 
 
