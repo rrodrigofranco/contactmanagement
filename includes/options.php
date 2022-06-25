@@ -1,4 +1,25 @@
 <?php
+global $wpdb;
+$table_persons = $wpdb->prefix.'persons';
+$table_contacts = $wpdb->prefix.'contacts';
+$charset_collate = $wpdb->get_charset_collate();
+
+$sql = "CREATE TABLE $table_persons (
+  id mediumint(9) NOT NULL AUTO_INCREMENT,
+  name text NOT NULL,
+  email varchar(55) NOT NULL,
+  PRIMARY KEY  (id)
+) $charset_collate;
+CREATE TABLE $table_contacts (
+  id mediumint(9) NOT NULL AUTO_INCREMENT,
+  id_person mediumint(20) NOT NULL,
+  code int(10) NOT NULL,
+  number int(20) NOT NULL,
+  PRIMARY KEY  (id)
+) $charset_collate;";
+
+require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+dbDelta($sql);
 // Settings menu creation
 function contact_management_admin_menu()
 {

@@ -73,6 +73,16 @@
         document.querySelector("#email").value = email;
 
     }
+
+    function editContact(id, id_person, code, number) {
+        // Declare all variables
+        document.querySelector('#add-contact').textContent = 'Editar'
+        document.querySelector('#voltar-contact').style.display = 'block'
+        document.querySelector("#id_contact_update").value = id
+        document.querySelector("#number").value = number;
+        document.querySelector("#person_id").value = id_person
+        document.querySelector("#code").value = '+' + code;
+    }
 </script>
 
 <?php
@@ -82,33 +92,17 @@ $table_contacts = $wpdb->prefix . 'contacts';
 
 
 
-if (isset($_POST['number'])) {
-    $number = intval($_POST['number']);
-    $id_person = intval($_POST['person_id']);
-    $code = intval($_POST['code']);
-    $code = intval(substr($code, 1));
-    $wpdb->insert(
-        $table_contacts,
-        array(
-            'id_person' => $id_person,
-            'code' => $code,
-            'number' => $number
-        )
-    );
-}
-
-
 if (isset($_POST['id_person_update'])) {
     $id_person = $_POST['id_person_update'];
     if (!empty($id_person)) {
         $name = $_POST['name'];
         $email = $_POST['email'];
 
-        $wpdb->update( $table_persons, array( 'name' => $name, 'email' =>  $email), array('id' => intval($id_person)) );
+        $wpdb->update($table_persons, array('name' => $name, 'email' =>  $email), array('id' => intval($id_person)));
     } else if (isset($_POST['name'])) {
         $nome = $_POST['name'];
         $email = $_POST['email'];
-    
+
         $wpdb->insert(
             $table_persons,
             array(
@@ -119,40 +113,28 @@ if (isset($_POST['id_person_update'])) {
     }
 }
 
-if (isset($_POST['id_person'])) {
-    global $wpdb;
-    $table_persons =  'wp-persons';
-    $id_person = intval($_POST['id_person']);
-    $wpdb->delete($table_persons, array('id' => $id_person));
+if (isset($_POST['id_contact_update'])) {
+    $id_contact = $_POST['id_contact_update'];
+    if (!empty($id_contact)) {
+        $number = intval($_POST['number']);
+        $id_person = intval($_POST['person_id']);
+        $code = $_POST['code'];
+        $wpdb->update($table_contacts, array('id_person' => $id_person, 'code' =>  $code, 'number' => $number), array('id' => intval($id_contact)));
+    } else if (isset($_POST['number'])) {
+        $number = intval($_POST['number']);
+        $id_person = intval($_POST['person_id']);
+        $code = intval($_POST['code']);
+        $code = intval($code);
+        $wpdb->insert(
+            $table_contacts,
+            array(
+                'id_person' => $id_person,
+                'code' => $code,
+                'number' => $number
+            )
+        );
+    }
 }
-
-//Deletar
-//$id = 2; 
-//$wpdb->delete( $table_persons, array( 'id' => $id ) );
-
-//Editar
-//$id = 3;
-//$wpdb->update( $table_persons, array( 'name' => 'josé' ), array('id' => $id) );
-
-
-$charset_collate = $wpdb->get_charset_collate();
-
-$sql = "CREATE TABLE $table_persons (
-  id mediumint(9) NOT NULL AUTO_INCREMENT,
-  name text NOT NULL,
-  email varchar(55) NOT NULL,
-  PRIMARY KEY  (id)
-) $charset_collate;
-CREATE TABLE $table_contacts (
-  id mediumint(9) NOT NULL AUTO_INCREMENT,
-  id_person mediumint(20) NOT NULL,
-  code int(5) NOT NULL,
-  number int(20) NOT NULL,
-  PRIMARY KEY  (id)
-) $charset_collate;";
-
-require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-dbDelta($sql);
 
 ?>
 <!-- Tab links -->
@@ -199,6 +181,8 @@ dbDelta($sql);
 
 <!-- Tab content -->
 <div id="Contacts" class="tabcontent">
+    <h2 id="add-contact">Adicionar</h2>
+    <a id="voltar-contact" href="" style="display: none">Voltar</a>
     <form method="POST">
         <table class="form-table">
             <tbody>
@@ -225,8 +209,8 @@ dbDelta($sql);
                         <select name="code" id="code">
                             <option value="+351">Portugal (+351)</option>
                             <option value="+55">Brasil (+55)</option>
-                            <option value="+54">+54</option>
-                            <option value="+56">+56</option>
+                            <option value="+54">Chile (+54)</option>
+                            <option value="+56">Argentina (+56)</option>
                     </td>
                     </select>
                 </tr>
@@ -236,6 +220,7 @@ dbDelta($sql);
                         <input type="number" name="number" id="number">
                     </td>
                 </tr>
+                <input hidden type="number" name="id_contact_update" id="id_contact_update">
             </tbody>
         </table>
 
@@ -251,10 +236,11 @@ dbDelta($sql);
         echo $person->name . "<br>";
         foreach ($all_contacts as $contact) {
     ?>
-            <?php echo $contact->number ?></a><a href="" onclick="deletarContact(<?php echo $contact->id ?>)"> remover</a><br>
+            (<?php echo $contact->code ?>) <?php echo $contact->number ?></a><a href="" onclick="deletarContact(<?php echo $contact->id ?>)"> remover</a><a href="#" onclick="editContact(<?php echo $contact->id ?>, '<?php echo $contact->id_person ?>', '<?php echo $contact->code ?>', '<?php echo $contact->number ?>'); event.preventDefault();"> Editar</a><br>
     <?php
 
         }
+
         echo "---------------------<br>";
     }
     ?>
@@ -275,45 +261,6 @@ curl_close($curl);
 print($avatar);
 */
 ?>
-<!--AJAX PARA LISTAR OS DADOS -->
-<script type="text/javascript">
-    jQuery(document).ready(function() {
-        listarContatos();
-        listarPessoas();
-    })
-</script>
-
-<script type="text/javascript">
-    function listarContatos() {
-        let pag = "<?php echo plugin_dir_url(__DIR__) . 'admin/'; ?>";
-        let id_person = document.getElementById('id_person').value;
-        jQuery.ajax({
-            url: pag + "/listar-contatos.php",
-            method: "post",
-            data: {
-                id_person
-            },
-            dataType: "html",
-            success: function(result) {
-                jQuery('#listar-contatos').html(result)
-            },
-        })
-    }
-</script>
-
-<script type="text/javascript">
-    function listarPessoas() {
-        let pag = "<?php echo plugin_dir_url(__DIR__) . 'admin/'; ?>";
-        jQuery.ajax({
-            url: pag + "/listar-pessoas.php",
-            method: "post",
-            dataType: "html",
-            success: function(result) {
-                jQuery('#listar-pessoas').html(result)
-            },
-        })
-    }
-</script>
 
 <script type="text/javascript">
     async function deletarPerson(id_person) {
@@ -346,27 +293,6 @@ print($avatar);
                     resolve(response['remove']);
                     id = '#' + id_contact
                     jQuery(id).remove();
-                },
-                error: function(jqXHR) {
-                    reject(new Error(`Could not check whether nickname exists or not.\nReason: ${ jqXHR.responseText }`));
-                }
-            });
-        })
-    }
-</script>
-
-<script type="text/javascript">
-    async function updatePerson(id_person, name, email) {
-        alert('oi');
-        return new Promise((resolve, reject) => {
-            jQuery.ajax({
-                url: window.location.origin + "/wp-json/api/v2/updateperson/" + id_person + "/" + name + "/" + email,
-                type: "GET",
-                data: id_person,
-                success: function(response) {
-                    resolve(response['remove']);
-                    // id = '#' + id_contact
-                    //  jQuery(id).remove();
                 },
                 error: function(jqXHR) {
                     reject(new Error(`Could not check whether nickname exists or not.\nReason: ${ jqXHR.responseText }`));
