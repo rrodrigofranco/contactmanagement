@@ -36,7 +36,6 @@
     }
 </style>
 <script>
-
     function openPersons(evt, Status, id = null) {
         // Declare all variables
 
@@ -87,17 +86,6 @@
             });
         });
     });
-
-    jQuery(function() {
-    jQuery('input[type="submit"]').prop('disabled', true);
-    jQuery('#number').on('input', function(e) {
-        if(this.value.length === 9) {
-            jQuery('input[type="submit"]').prop('disabled', false);
-        } else {
-            jQuery('input[type="submit"]').prop('disabled', true);
-        }
-    });
-});
 </script>
 
 <?php
@@ -181,7 +169,7 @@ if (isset($_POST['id_contact_update'])) {
                 <input hidden type="number" name="id_person_update" id="id_person_update">
             </tbody>
         </table>
-        <?php submit_button(); ?>
+        <button type="submit" id="btnpersons" class="button-primary">Adicionar</button>
     </form>
     <h3>Pessoas</h3>
     <?php
@@ -249,14 +237,13 @@ if (isset($_POST['id_contact_update'])) {
                 <tr>
                     <th><label for="name">Number: </label></th>
                     <td>
-                        <input type="number" name="number" id="number" min="9" required>
+                        <input type="number" name="number" id="number" maxlength="6" data-minlength="6" required>
                     </td>
                 </tr>
                 <input hidden type="number" name="id_contact_update" id="id_contact_update">
             </tbody>
         </table>
-
-        <?php submit_button(); ?>
+        <button type="submit" name = "btncontacts" id="btncontacts" class="button-primary">Adicionar</button>
     </form>
     <h3>Contatos</h3>
     <table id="contacts-table">

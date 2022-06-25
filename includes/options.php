@@ -27,11 +27,7 @@ function contact_management_admin_menu()
 }
 add_action('admin_menu', 'contact_management_admin_menu');
 
-add_action('wp_enqueue_scripts','ava_test_init');
 
-function ava_test_init() {
-    wp_enqueue_script( 'ava-test-js', plugins_url( '/assets/js/scripts.js', __FILE__ ));
-}
 // Settings route to remove person
 function remove_person_endpoint($id_person)
 {
