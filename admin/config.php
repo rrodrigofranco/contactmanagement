@@ -48,6 +48,7 @@
 
     function openPersons(evt, Status, id = null) {
         // Declare all variables
+
         let i, tabcontent, tablinks;
         // Get all elements with class="tabcontent" and hide them
         tabcontent = document.getElementsByClassName("tabcontent");
@@ -62,6 +63,9 @@
         }
         document.getElementById(Status).style.display = "block";
         evt.currentTarget.className += " active";
+        if (id != null) {
+            document.querySelector("#person_id").value = id;
+        }
     }
 
     function editPerson(id, name, email) {
@@ -83,6 +87,15 @@
         document.querySelector("#person_id").value = id_person
         document.querySelector("#code").value = '+' + code;
     }
+    jQuery(function() {
+        jQuery("#filter-person").on("keyup", function() {
+            let value = jQuery(this).val().toLowerCase();
+
+            jQuery("#persons-table > tbody > tr").filter(function() {
+                jQuery(this).toggle(jQuery(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
 </script>
 
 <?php
@@ -145,21 +158,23 @@ if (isset($_POST['id_contact_update'])) {
 
 
 <!-- Tab content -->
-<div id="Persons" class="tabcontent" style="display: block;">
+<div id="Persons" class="tabcontent" id="commentForm" style="display: block;">
     <h2 id="adicionar">Adicionar</h2>
     <a id="voltar" href="" style="display: none">Voltar</a>
     <form method="POST">
         <table class="form-table">
             <tbody>
-                <tr>
+                <tr id="name">
                     <th><label for="name">Nome: </label></th>
                     <td>
-                        <input type="text" name="name" id="name">
+                        <input type="text" name="name" id="name" required minlength="5">
                     </td>
                 </tr>
-                <tr id="delay_field">
-                    <th><label for="email">E-mail: </label></th>
-                    <td><input type="text" name="email" id="email"></td>
+                <tr>
+                    <th>
+                        <label for="email">E-mail: </label>
+                    </th>
+                    <td> <input id="email" type="email" name="email" required></td>
                 </tr>
                 <input hidden type="number" name="id_person_update" id="id_person_update">
             </tbody>
@@ -169,14 +184,29 @@ if (isset($_POST['id_contact_update'])) {
     <h3>Pessoas</h3>
     <?php
     $all_persons = $wpdb->get_results("SELECT * FROM `" . $wpdb->prefix . "persons`");
-
-    foreach ($all_persons as $person) {
     ?>
-        <?php echo $person->name ?><a href="" onclick="deletarPerson(<?php echo $person->id ?>)"> remover</a> <a href="#" onclick="editPerson(<?php echo $person->id ?>, '<?php echo $person->name ?>', '<?php echo $person->email ?>'); event.preventDefault();"> Editar</a> <br>
-    <?php
+    <div class="form-group">
+        <label for="filter">Filter:</label> <input type="text" id="filter-person">
+    </div>
+    <table id="persons-table">
+        <tr>
+            <th>Avatar</th>
+            <th>Nome</th>
+            <th>Email</th>
+        </tr>
+        <?php
+        foreach ($all_persons as $person) {
+        ?>
+            <tr>
+                <td>------</td>
+                <td><?php echo $person->name ?> <a href="#" onclick="openPersons(event, 'Contacts', id = <?php echo $person->id ?>)"> AddContact |</a><a href="" onclick="deletarPerson(<?php echo $person->id ?>)"> remover</a> <a href="#" onclick="editPerson(<?php echo $person->id ?>, '<?php echo $person->name ?>', '<?php echo $person->email ?>'); event.preventDefault();">| Editar</a></td>
+                <td><?php echo $person->email ?></td>
+            </tr>
+        <?php
 
-    }
-    ?>
+        }
+        ?>
+    </table>
 </div>
 
 <!-- Tab content -->
@@ -217,7 +247,7 @@ if (isset($_POST['id_contact_update'])) {
                 <tr>
                     <th><label for="name">Number: </label></th>
                     <td>
-                        <input type="number" name="number" id="number">
+                        <input type="number" name="number" id="number" min="9" max="9" required>
                     </td>
                 </tr>
                 <input hidden type="number" name="id_contact_update" id="id_contact_update">
@@ -227,24 +257,34 @@ if (isset($_POST['id_contact_update'])) {
         <?php submit_button(); ?>
     </form>
     <h3>Contatos</h3>
-    <?php
-    $all_persons = $wpdb->get_results("SELECT * FROM `" . $wpdb->prefix . "persons`");
+    <table id="contacts-table">
+        <tr>
+            <th>Pessoa</th>
+            <th>Contatos</th>
+        </tr>
+        <?php
+        $all_persons = $wpdb->get_results("SELECT * FROM `" . $wpdb->prefix . "persons`");
 
-    foreach ($all_persons as $person) {
+        foreach ($all_persons as $person) {
 
-        $all_contacts = $wpdb->get_results("SELECT * FROM `" . $wpdb->prefix . "contacts` where id_person = $person->id");
-        echo $person->name . "<br>";
-        foreach ($all_contacts as $contact) {
-    ?>
-            (<?php echo $contact->code ?>) <?php echo $contact->number ?></a><a href="" onclick="deletarContact(<?php echo $contact->id ?>)"> remover</a><a href="#" onclick="editContact(<?php echo $contact->id ?>, '<?php echo $contact->id_person ?>', '<?php echo $contact->code ?>', '<?php echo $contact->number ?>'); event.preventDefault();"> Editar</a><br>
-    <?php
+            $all_contacts = $wpdb->get_results("SELECT * FROM `" . $wpdb->prefix . "contacts` where id_person = $person->id");
+        ?>
+            <tr>
+                <td><?php echo $person->name; ?></td>
 
+                <?php
+                foreach ($all_contacts as $contact) {
+                ?>
+                    <td>(<?php echo $contact->code ?>) <?php echo $contact->number ?></a><a href="" onclick="deletarContact(<?php echo $contact->id ?>)"> remover</a><a href="#" onclick="editContact(<?php echo $contact->id ?>, '<?php echo $contact->id_person ?>', '<?php echo $contact->code ?>', '<?php echo $contact->number ?>'); event.preventDefault();"> Editar</a><br></td>
+                <?php
+
+                }
+                ?>
+            </tr>
+        <?php
         }
-
-        echo "---------------------<br>";
-    }
-    ?>
-
+        ?>
+    </table>
 </div>
 <?php
 

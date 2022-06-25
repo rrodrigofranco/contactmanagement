@@ -1,7 +1,7 @@
 <?php
 global $wpdb;
-$table_persons = $wpdb->prefix.'persons';
-$table_contacts = $wpdb->prefix.'contacts';
+$table_persons = $wpdb->prefix . 'persons';
+$table_contacts = $wpdb->prefix . 'contacts';
 $charset_collate = $wpdb->get_charset_collate();
 
 $sql = "CREATE TABLE $table_persons (
@@ -27,13 +27,17 @@ function contact_management_admin_menu()
 }
 add_action('admin_menu', 'contact_management_admin_menu');
 
+add_action('wp_enqueue_scripts','ava_test_init');
 
+function ava_test_init() {
+    wp_enqueue_script( 'ava-test-js', plugins_url( '/assets/js/scripts.js', __FILE__ ));
+}
 // Settings route to remove person
 function remove_person_endpoint($id_person)
 {
     global $wpdb;
-    $table_persons =  $wpdb->prefix.'persons';
-    $table_contacts = $wpdb->prefix.'contacts';
+    $table_persons =  $wpdb->prefix . 'persons';
+    $table_contacts = $wpdb->prefix . 'contacts';
     $wpdb->delete($table_persons, array('id' => $id_person));
     $wpdb->delete($table_contacts, array('id_person' => $id_person));
     return true;
@@ -63,7 +67,7 @@ add_action('rest_api_init', 'at_rest_init_remove_person');
 function remove_contact_endpoint($id_contact)
 {
     global $wpdb;
-    $table_contacts = $wpdb->prefix.'contacts';
+    $table_contacts = $wpdb->prefix . 'contacts';
     $wpdb->delete($table_contacts, array('id' => $id_contact));
     return true;
 }
@@ -88,34 +92,35 @@ function at_rest_init_remove_contact()
 
 add_action('rest_api_init', 'at_rest_init_remove_contact');
 
+// Settings route to check email
 
-// Settings route to edit person
-function edit_person_endpoint($id_person, $name, $email)
+function check_email_contact_endpoint($email)
 {
     global $wpdb;
-    $table_persons = $wpdb->prefix.'persons';
-    $wpdb->update($table_persons, array('name' => $name, 'email' => $email), array('id' => $id_person));
-    return true;
+    $has_email = $wpdb->get_results("SELECT * FROM `" . $wpdb->prefix . "persons` where email = '$email'");
+    if (empty($has_email)) {
+        return false;
+    } else {
+        return true;
+    }
 }
 
-function at_rest_init_edit_person()
+function at_rest_init_check_email()
 {
     // route url: domain.com/wp-json/$namespace/$route
     $namespace = 'api/v2';
-    $route     = 'updateperson/(?P<id_person>.*?)'.'/(?P<name>.*?)'.'/(?P<email>.*?)';
+    $route     = 'checkemail/(?P<email>.*?)';
 
     register_rest_route($namespace, $route, array(
         'methods'   => WP_REST_Server::READABLE,
         'callback' => static function (WP_REST_Request $request) {
-            $id_person = $request->get_param('id_person');
-            $name = $request->get_param('name');
             $email = $request->get_param('email');
             return [
-                'id_person' => $id_person,
-                'edit' => edit_person_endpoint($id_person, $name, $email),
+                'email' => $email,
+                'exists' => check_email_contact_endpoint($email),
             ];
         },
     ));
 }
 
-add_action('rest_api_init', 'at_rest_init_edit_person');
+add_action('rest_api_init', 'at_rest_init_check_email');
