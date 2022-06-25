@@ -36,16 +36,6 @@
     }
 </style>
 <script>
-    function updateButton() {
-        aux = jQuery(".tablinks");
-        for (let i = 0; i < aux.size(); i++) {
-            if (aux[i].className == 'tablinks active') {
-                aux[i].click();
-                i = jQuery(".tablinks").size();
-            }
-        }
-    }
-
     function openPersons(evt, Status, id = null) {
         // Declare all variables
 
@@ -286,22 +276,6 @@ if (isset($_POST['id_contact_update'])) {
         ?>
     </table>
 </div>
-<?php
-
-
-
-
-/*
-// create & initialize a curl session
-$curl = curl_init();
-curl_setopt($curl, CURLOPT_URL, "https://app.pixelencounter.com/api/basic/monsters/random/webp?size=100");
-curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-$avatar = curl_exec($curl);
-curl_close($curl);
-print($avatar);
-*/
-?>
-
 <script type="text/javascript">
     async function deletarPerson(id_person) {
         return new Promise((resolve, reject) => {
